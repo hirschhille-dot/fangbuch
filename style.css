@@ -110,6 +110,7 @@ a{color:var(--accent)}
 .mini span.w i{background:var(--accent)}
 .mini-l{display:flex;gap:4px;font-size:11px;color:var(--muted)}
 .mini-l span{flex:1}
-.hero{display:block;width:100%;height:auto;aspect-ratio:1200/675;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:var(--water)}
+.hero{display:block;width:100%;height:96px;object-fit:cover;object-position:50% 22%;border-radius:12px;border:1px solid var(--line);background:var(--water)}
+@media (min-width:700px){.hero{height:150px}}
 .leaflet-popup-content{font-family:var(--body);font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
