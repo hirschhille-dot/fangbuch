@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15302c">
+<title>Fangbuch</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="appbar">
+  <div class="brand"><h1>Fangbuch</h1><span id="syncState" class="pill">lokal</span></div>
+  <div id="status" class="status"></div>
+</header>
+
+<main class="wrap">
+  <div id="banner" class="msg hidden"></div>
+
+  <!-- ===== MELDEN ===== -->
+  <section class="view on" id="v-melden">
+    <div class="card" id="sessCard">
+      <div class="row-between"><h2>Session</h2><span id="gpsState" class="hint"></span></div>
+
+      <div id="sessNone" class="stack">
+        <button class="btn primary big" id="btnStart">Session starten</button>
+        <p class="hint">Holt deinen Standort, ordnet den Spot zu und speichert das aktuelle Wetter.</p>
+        <details>
+          <summary>Spot von Hand wählen</summary>
+          <div class="grid2">
+            <label for="s-spot">Spot<select id="s-spot"></select></label>
+            <label for="s-start">Start<input id="s-start" type="time"></label>
+          </div>
+          <button class="btn" id="btnStartManual">Mit diesem Spot starten</button>
+        </details>
+      </div>
+
+      <div id="newSpot" class="stack hidden">
+        <p class="msg" id="newSpotMsg"></p>
+        <div class="grid2">
+          <label for="ns-id">Spot-ID<input id="ns-id"></label>
+          <label for="ns-country">Land<select id="ns-country"><option>DE</option><option>NL</option><option>DK</option><option>SE</option><option>NO</option></select></label>
+          <label for="ns-water">Gewässer<input id="ns-water" placeholder="z. B. Innerste"></label>
+          <label for="ns-zone">Abschnitt<input id="ns-zone" placeholder="z. B. Wehr / Jo-Wiese"></label>
+          <label for="ns-depth">Tiefe (m)<input id="ns-depth" type="number" step="0.1" inputmode="decimal"></label>
+          <label for="ns-struct">Struktur<input id="ns-struct" placeholder="z. B. Krautkante, Rinne"></label>
+        </div>
+        <div class="btns"><button class="btn primary" id="btnSaveSpot">Spot anlegen und starten</button><button class="btn" id="btnCancelSpot">Abbrechen</button></div>
+      </div>
+
+      <div id="sessLive" class="stack hidden">
+        <div class="row-between">
+          <div><div class="bignum" id="sl-time">0:00 h</div><div class="hint" id="sl-meta"></div></div>
+          <button class="btn" id="btnEnd">Beenden</button>
+        </div>
+        <div class="chips" id="sl-chips"></div>
+        <div class="wx" id="sl-wx"></div>
+      </div>
+    </div>
+
+    <div class="card" id="catchCard">
+      <div class="row-between"><h2 id="catchTitle">Fang oder Biss melden</h2><button class="btn small hidden" id="btnCancelEdit">Bearbeiten abbrechen</button></div>
+      <label for="c-text">Was ist passiert?
+        <textarea id="c-text" placeholder="z. B. Barsch 27 cm, Easy Shiner 2 Zoll braun, 3 g Jigkopf, UL, sehr langsam, Biss in der Absinkphase, Wasser 8 Grad, zurückgesetzt"></textarea>
+      </label>
+      <div class="btns">
+        <button class="btn mic" id="btnMic" aria-pressed="false">Sprechen</button>
+        <button class="btn" id="btnParse">Felder ausfüllen</button>
+      </div>
+      <div class="grid2">
+        <label for="f-result">Ergebnis<select id="f-result"><option>Gelandet</option><option>Fehlbiss</option><option>Ausgestiegen</option><option>Nachläufer</option></select></label>
+        <label for="f-species">Fischart<input id="f-species" list="speciesList" autocomplete="off"></label>
+        <label for="f-cm">Länge (cm)<input id="f-cm" type="number" step="0.5" inputmode="decimal"></label>
+        <label for="f-time">Uhrzeit<input id="f-time" type="time"></label>
+        <label for="f-spot">Spot<select id="f-spot"></select></label>
+        <label for="f-lure">Köder<input id="f-lure" list="lureList" autocomplete="off"></label>
+        <label for="f-size">Größe (Zoll)<input id="f-size" type="number" step="0.1" inputmode="decimal"></label>
+        <label for="f-color">Farbe<input id="f-color" autocomplete="off"></label>
+        <label for="f-weight">Kopf/Blei (g)<input id="f-weight" type="number" step="0.5" inputmode="decimal"></label>
+        <label for="f-rig">Montage<input id="f-rig" list="rigList" autocomplete="off"></label>
+        <label for="f-setup">Setup<select id="f-setup"></select></label>
+        <label for="f-tempo">Tempo<select id="f-tempo"><option value=""></option><option>1 sehr langsam</option><option>2 langsam</option><option>3 mittel</option><option>4 schnell</option><option>5 sehr schnell</option></select></label>
+        <label for="f-retrieve">Führung<input id="f-retrieve" autocomplete="off"></label>
+        <label for="f-bite">Biss / Phase<input id="f-bite" autocomplete="off"></label>
+        <label for="f-wt">Wasser (°C)<input id="f-wt" type="number" step="0.1" inputmode="decimal"></label>
+        <label for="f-release">Verbleib<select id="f-release"><option>Zurückgesetzt</option><option>Entnommen</option><option value="">–</option></select></label>
+      </div>
+      <label for="f-notes">Notizen<input id="f-notes" autocomplete="off"></label>
+      <div class="btns">
+        <button class="btn primary big" id="btnSave">Speichern</button>
+        <button class="btn danger hidden" id="btnDelete">Löschen</button>
+      </div>
+      <div id="saveMsg" class="msg hidden"></div>
+    </div>
+
+    <div class="card">
+      <h3>Köder ohne Biss</h3>
+      <label for="a-text">Was hast du probiert?<input id="a-text" placeholder="z. B. Krebs 5 cm braun-blau, 5 g, 30 min"></label>
+      <div class="btns"><button class="btn" id="btnAttempt">Versuch speichern</button><span class="hint" id="attMsg"></span></div>
+    </div>
+  </section>
+
+  <!-- ===== KARTE ===== -->
+  <section class="view" id="v-karte">
+    <div class="controls">
+      <div class="seg" id="segCountry" role="group" aria-label="Land"></div>
+      <div class="seg" id="segSpecies" role="group" aria-label="Fischart">
+        <button data-f="all" aria-pressed="true">Alle</button><button data-f="Barsch" aria-pressed="false">Barsch</button><button data-f="Döbel" aria-pressed="false">Döbel</button><button data-f="other" aria-pressed="false">Andere</button>
+      </div>
+    </div>
+    <div id="map" role="region" aria-label="Karte mit Fangplätzen"></div>
+    <div class="legend">
+      <span><i style="background:var(--accent-soft)"></i>Ø unter 18 cm</span>
+      <span><i style="background:var(--accent-mid)"></i>18–25 cm</span>
+      <span><i style="background:var(--accent)"></i>über 25 cm</span>
+      <span><i style="border:2px dashed var(--miss)"></i>Fehlbiss</span>
+      <span><i style="border:2px solid var(--empty);background:var(--panel)"></i>ohne Fang</span>
+    </div>
+    <div class="card"><div id="spotDetail"><p class="hint">Tippe auf einen Punkt.</p></div></div>
+    <div class="card">
+      <h2>Spots nach Erfolg</h2>
+      <div class="tblwrap"><table><thead><tr><th>Spot</th><th>Abschnitt</th><th class="n">Fische</th><th class="n">Ø cm</th><th class="n">Max</th><th class="n">Fehlb.</th><th class="n">Tiefe</th></tr></thead><tbody id="spotBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ===== AUSWERTUNG ===== -->
+  <section class="view" id="v-analyse">
+    <div class="controls"><div class="seg" id="segCountry2" role="group" aria-label="Land"></div></div>
+    <div class="tiles" id="kpi"></div>
+    <div class="cards2" id="analysis"></div>
+    <p class="hint">Rückwirkend erfasste Einträge zählen mit. Bei wenigen Fängen sind das Hinweise, keine sicheren Muster.</p>
+  </section>
+
+  <!-- ===== FANGBUCH ===== -->
+  <section class="view" id="v-buch">
+    <div class="card">
+      <div class="row-between"><h2>Einträge</h2><button class="btn small" id="btnExport">Excel</button></div>
+      <p class="hint">Tippe auf einen Eintrag, um ihn zu bearbeiten.</p>
+      <div class="tblwrap"><table><thead><tr><th>ID</th><th>Datum</th><th>Zeit</th><th>Spot</th><th>Art</th><th class="n">cm</th><th>Köder</th><th>Setup</th><th>Wetter</th></tr></thead><tbody id="catchBody"></tbody></table></div>
+      <div class="btns"><button class="btn small" id="btnBackfill">Fehlendes Wetter nachtragen</button><span class="hint" id="bfMsg"></span></div>
+    </div>
+    <div class="card">
+      <h2>Sessions</h2>
+      <div class="tblwrap"><table><thead><tr><th>ID</th><th>Datum</th><th>Zeit</th><th>Spots</th><th class="n">Dauer</th><th class="n">Bisse</th><th class="n">Fische</th><th class="n">F/Std</th><th>Wetter beim Start</th></tr></thead><tbody id="sessBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ===== EINSTELLUNGEN ===== -->
+  <section class="view" id="v-konto">
+    <div class="card" id="authCard">
+      <h2>Konto &amp; Sync</h2>
+      <p class="hint" id="authInfo"></p>
+      <div id="authForm" class="stack">
+        <div class="grid2">
+          <label for="au-mail">E-Mail<input id="au-mail" type="email" autocomplete="email"></label>
+          <label for="au-pw">Passwort<input id="au-pw" type="password" autocomplete="current-password"></label>
+        </div>
+        <div class="btns"><button class="btn primary" id="btnLogin">Anmelden</button><button class="btn" id="btnSignup">Konto anlegen</button></div>
+      </div>
+      <div id="authOut" class="btns hidden"><button class="btn" id="btnSync">Jetzt synchronisieren</button><button class="btn" id="btnLogout">Abmelden</button></div>
+      <div id="authMsg" class="msg hidden"></div>
+    </div>
+    <div class="card">
+      <h2>Daten</h2>
+      <p class="hint" id="dataInfo"></p>
+      <div class="btns">
+        <button class="btn" id="btnImport">Fänge aus Datei importieren</button>
+        <button class="btn" id="btnExport2">Als Excel herunterladen</button>
+        <input type="file" id="fileImport" accept=".json,application/json" class="hidden">
+        <button class="btn" id="btnBackup">JSON-Sicherung speichern</button>
+      </div>
+      <div id="dataMsg" class="msg hidden"></div>
+    </div>
+    <div class="card">
+      <h2>Tackle</h2>
+      <div class="tblwrap"><table><thead><tr><th>Code</th><th>Kombo</th></tr></thead><tbody id="tackleBody"></tbody></table></div>
+    </div>
+    <p class="hint">Wetter: Open-Meteo (Modelldaten, stündlich). Karte: © OpenStreetMap-Mitwirkende.</p>
+  </section>
+</main>
+
+<nav class="tabbar" role="tablist">
+  <button role="tab" data-v="melden" aria-selected="true">Melden</button>
+  <button role="tab" data-v="karte" aria-selected="false">Karte</button>
+  <button role="tab" data-v="analyse" aria-selected="false">Auswertung</button>
+  <button role="tab" data-v="buch" aria-selected="false">Fangbuch</button>
+  <button role="tab" data-v="konto" aria-selected="false">Konto</button>
+</nav>
+
+<datalist id="speciesList"><option>Barsch</option><option>Zander</option><option>Hecht</option><option>Döbel</option><option>Äsche</option><option>Forelle</option><option>Rapfen</option><option>Aland</option><option>Meerforelle</option><option>Dorsch</option><option>Wels</option></datalist>
+<datalist id="rigList"><option>Jigkopf</option><option>Drop-Shot</option><option>Texas-Rig</option><option>Carolina-Rig</option><option>Ned-Rig</option><option>Free-Rig</option><option>Chatterbait</option><option>Hardbait</option><option>Spinner</option></datalist>
+<datalist id="lureList"></datalist>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="config.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

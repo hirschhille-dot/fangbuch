@@ -1,0 +1,4 @@
+*.png.tmp
+.DS_Store
+data/
+*.json.bak
