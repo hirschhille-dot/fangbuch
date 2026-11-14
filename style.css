@@ -15,7 +15,7 @@
   }
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
+html,body{margin:0;height:100%;overflow-x:clip}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
 h1{font-size:26px} h2{font-size:21px} h3{font-size:18px}
@@ -110,7 +110,9 @@ a{color:var(--accent)}
 .mini span.w i{background:var(--accent)}
 .mini-l{display:flex;gap:4px;font-size:11px;color:var(--muted)}
 .mini-l span{flex:1}
-.hero{display:block;width:100%;height:96px;object-fit:cover;object-position:50% 22%;border-radius:12px;border:1px solid var(--line);background:var(--water)}
-@media (min-width:700px){.hero{height:150px}}
+.hero{position:relative;z-index:0;margin:-12px -14px -64px;aspect-ratio:1672/941;max-height:60vh;background:var(--water) url(img/titelbild.jpg) center top/cover no-repeat}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--bg) 97%)}
+#v-melden>.card{position:relative;z-index:1}
+@media (min-width:988px){.hero{margin-left:0;margin-right:0;border-radius:0 0 12px 12px}}
 .leaflet-popup-content{font-family:var(--body);font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
