@@ -1,5 +1,5 @@
 /* Fangbuch Service Worker: App offline verfügbar, Kartenkacheln zwischenspeichern, Daten- und Wetterabrufe immer live */
-const VERSION = "fb-v3";
+const VERSION = "fb-v4";
 const SHELL = ["./", "index.html", "style.css", "core.js", "app.js", "predict.js", "config.js", "manifest.webmanifest", "icons/icon-192.png"];
 const CDN = [
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",

@@ -1,6 +1,6 @@
 {
-  "name": "Fangbuch",
-  "short_name": "Fangbuch",
+  "name": "Lucky Byte",
+  "short_name": "Lucky Byte",
   "description": "Fänge melden mit GPS, Live-Wetter, Karte und Auswertung",
   "start_url": "./",
   "scope": "./",

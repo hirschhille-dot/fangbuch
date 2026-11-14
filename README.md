@@ -1,4 +1,4 @@
-# Fangbuch
+# Lucky Byte – Fangbuch
 
 Web-App fürs Angeln: Session starten mit GPS, Fänge per Sprache melden, Live-Wetter automatisch, Karte mit allen Spots, Auswertung und Excel-Export. Läuft auf dem Android-Handy wie eine App (auch offline am Wasser) und gleicht die Daten über Supabase mit allen Geräten ab.
 
