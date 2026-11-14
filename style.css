@@ -88,8 +88,24 @@ tr.row:hover td{background:var(--water)}
 .fl li.missed{border-left-color:var(--miss)}
 .fl small{display:block;color:var(--muted)}
 a{color:var(--accent)}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.tabbar button{font:inherit;font-size:12.5px;font-weight:600;background:none;border:0;padding:12px 2px;color:var(--muted);border-top:3px solid transparent;cursor:pointer}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(6,1fr);background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{font:inherit;font-size:12px;font-weight:600;background:none;border:0;padding:10px 1px;min-width:0;line-height:1.15;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:anywhere;letter-spacing:-.01em;color:var(--muted);border-top:3px solid transparent;cursor:pointer}
 .tabbar button[aria-selected="true"]{color:var(--ink);border-top-color:var(--accent)}
+.condgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 18px}
+.cond{display:grid;gap:4px}
+.cond .lbl{color:var(--muted);font-size:13px}
+.seg.full{display:flex;width:100%}
+.seg.full button{flex:1;padding:9px 4px}
+.klasse{font-family:var(--display);font-size:24px;font-weight:600;line-height:1.2}
+.out{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
+.out .win{font-weight:600;font-size:16px}
+.out .win .chip{white-space:nowrap;display:inline-block;font-weight:500}
+.out p{margin:2px 0 0}
+.mini{display:flex;gap:4px;margin-top:5px}
+.mini span{flex:1;height:6px;border-radius:3px;background:var(--water);position:relative;overflow:hidden}
+.mini span i{position:absolute;left:0;top:0;bottom:0;background:var(--empty)}
+.mini span.w i{background:var(--accent)}
+.mini-l{display:flex;gap:4px;font-size:11px;color:var(--muted)}
+.mini-l span{flex:1}
 .leaflet-popup-content{font-family:var(--body);font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}

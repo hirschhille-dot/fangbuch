@@ -134,6 +134,26 @@
     <p class="hint">Rückwirkend erfasste Einträge zählen mit. Bei wenigen Fängen sind das Hinweise, keine sicheren Muster.</p>
   </section>
 
+  <!-- ===== VORHERSAGE ===== -->
+  <section class="view" id="v-vorh">
+    <div class="card">
+      <h2>Bedingungen</h2>
+      <div class="cond"><span class="lbl">Zielfisch</span><div class="seg full" role="group" aria-label="Zielfisch" id="pc-fish"></div></div>
+      <div class="condgrid" id="pcGrid"></div>
+      <button class="btn" id="btnAuto">Aktuelles Wetter &amp; Uhrzeit übernehmen</button>
+      <p class="hint" id="autoMsg">Tippe die Bedingungen an oder übernimm Wetter, Licht und Tiefe automatisch.</p>
+    </div>
+    <div class="card">
+      <h2>Vorhersage</h2>
+      <div id="predOut"></div>
+    </div>
+    <div class="card">
+      <h3>Deine Fänge dazu</h3>
+      <div id="predData"></div>
+    </div>
+    <p class="hint">Die Empfehlung beruht auf allgemeinen Erfahrungswerten fürs Spinnfischen. Unter „Deine Fänge dazu“ siehst du, ob deine eigenen Daten das bestätigen.</p>
+  </section>
+
   <!-- ===== FANGBUCH ===== -->
   <section class="view" id="v-buch">
     <div class="card">
@@ -184,8 +204,9 @@
 
 <nav class="tabbar" role="tablist">
   <button role="tab" data-v="melden" aria-selected="true">Melden</button>
+  <button role="tab" data-v="vorh" aria-selected="false">Vorhersage</button>
   <button role="tab" data-v="karte" aria-selected="false">Karte</button>
-  <button role="tab" data-v="analyse" aria-selected="false">Auswertung</button>
+  <button role="tab" data-v="analyse" aria-selected="false">Analyse</button>
   <button role="tab" data-v="buch" aria-selected="false">Fangbuch</button>
   <button role="tab" data-v="konto" aria-selected="false">Konto</button>
 </nav>
@@ -200,5 +221,6 @@
 <script src="config.js"></script>
 <script src="core.js"></script>
 <script src="app.js"></script>
+<script src="predict.js"></script>
 </body>
 </html>
