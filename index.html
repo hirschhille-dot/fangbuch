@@ -79,6 +79,10 @@
         <label for="f-lure">Köder<input id="f-lure" list="lureList" autocomplete="off"></label>
         <label for="f-size">Größe (Zoll)<input id="f-size" type="number" step="0.1" inputmode="decimal"></label>
         <label for="f-color">Farbe<input id="f-color" autocomplete="off"></label>
+        <label for="f-ltype">Köderart<select id="f-ltype"><option value=""></option><option>Softbait</option><option>Hardbait</option><option>Metallköder</option></select></label>
+        <label for="f-lact">Ködertyp<select id="f-lact"><option value=""></option><option>Action</option><option>No Action</option><option>Druckwelle</option></select></label>
+        <label for="f-ccls">Farbklasse<select id="f-ccls"><option value=""></option><option>natürlich</option><option>dunkel</option><option>auffällig</option></select></label>
+        <label for="f-clar">Wasser (Trübung)<select id="f-clar"><option value=""></option><option>klar</option><option>leicht trüb</option><option>trüb</option></select></label>
         <label for="f-weight">Kopf/Blei (g)<input id="f-weight" type="number" step="0.5" inputmode="decimal"></label>
         <label for="f-rig">Montage<input id="f-rig" list="rigList" autocomplete="off"></label>
         <label for="f-setup">Setup<select id="f-setup"></select></label>
@@ -140,8 +144,8 @@
       <h2>Bedingungen</h2>
       <div class="cond"><span class="lbl">Zielfisch</span><div class="seg full" role="group" aria-label="Zielfisch" id="pc-fish"></div></div>
       <div class="condgrid" id="pcGrid"></div>
-      <button class="btn" id="btnAuto">Aktuelles Wetter &amp; Uhrzeit übernehmen</button>
-      <p class="hint" id="autoMsg">Tippe die Bedingungen an oder übernimm Wetter, Licht und Tiefe automatisch.</p>
+      <p class="hint" id="autoMsg">Standort und Wetter werden beim Öffnen automatisch übernommen.</p>
+      <button class="btn" id="btnAuto">Standort &amp; Wetter neu abrufen</button>
     </div>
     <div class="card">
       <h2>Vorhersage</h2>
@@ -151,7 +155,7 @@
       <h3>Deine Fänge dazu</h3>
       <div id="predData"></div>
     </div>
-    <p class="hint">Die Empfehlung beruht auf allgemeinen Erfahrungswerten fürs Spinnfischen. Unter „Deine Fänge dazu“ siehst du, ob deine eigenen Daten das bestätigen.</p>
+    <p class="hint">Grundlage sind allgemeine Erfahrungswerte fürs Spinnfischen plus deine eigenen Fänge: Je mehr Fänge unter ähnlichen Bedingungen, desto stärker bestimmen sie die Empfehlung. „gelernt“ heißt, deine Fänge haben die Regel überstimmt.</p>
   </section>
 
   <!-- ===== FANGBUCH ===== -->

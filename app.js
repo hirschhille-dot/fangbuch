@@ -15,9 +15,13 @@
     sessions: ["id", "date", "start_time", "end_time", "spots", "country", "live", "attempts", "note", "weather", "extra_misses", "lat", "lon"],
     catches: ["id", "session", "date", "time", "spot", "country", "lat", "lon", "result", "species", "cm", "lure", "size", "color", "weight", "rig", "setup", "retrieve", "tempo", "bite",
       "water_temp", "air_temp", "pressure", "pressure_trend", "humidity", "wind_speed", "wind_dir", "wind_gust", "cloud_cover", "precip", "weather_code", "weather_status", "weather_src",
-      "sunset", "light", "moon", "moon_ill", "release", "capture", "notes", "raw"]
+      "sunset", "light", "moon", "moon_ill", "release", "capture", "notes", "raw", "lure_type", "lure_action", "color_class", "clarity"]
   };
-  const LS = { data: "fb.data.v1", queue: "fb.queue.v1", synced: "fb.syncedUser" };
+  const LS = { data: "fb.data.v1", queue: "fb.queue.v1", synced: "fb.syncedUser", newcols: "fb.newcolsMissing" };
+  /* Neue Spalten (Vorhersage). Fehlen sie in Supabase noch, wird ohne sie synchronisiert und später nachgeholt. */
+  const NEWCOLS = { catches: ["lure_type", "lure_action", "color_class", "clarity"] };
+  let newColsMissing = localStorage.getItem(LS.newcols) === "1";
+  const strip = (t, o) => { if (newColsMissing && NEWCOLS[t]) NEWCOLS[t].forEach(k => delete o[k]); return o; };
   let D = { spots: [], sessions: [], catches: [] }, Q = [];
   let SB = null, USER = null, flushing = false;
   try { const x = JSON.parse(localStorage.getItem(LS.data)); if (x) D = Object.assign(D, x); } catch (e) { }
@@ -39,7 +43,15 @@
       try {
         if (q.op === "up") {
           const row = D[q.t].find(r => r.id === q.id);
-          if (row) { const { error } = await SB.from(q.t).upsert({ ...clean(q.t, row), user_id: USER.id }, { onConflict: "user_id,id" }); if (error) throw error; }
+          if (row) {
+            let { error } = await SB.from(q.t).upsert(strip(q.t, { ...clean(q.t, row), user_id: USER.id }), { onConflict: "user_id,id" });
+            if (error && NEWCOLS[q.t] && !newColsMissing && NEWCOLS[q.t].some(k => String(error.message || "").includes(k))) {
+              newColsMissing = true; localStorage.setItem(LS.newcols, "1");
+              banner("Hinweis: In Supabase fehlen die neuen Spalten für die Vorhersage. Führe einmal supabase/update-vorhersage.sql aus. Bis dahin bleiben die neuen Felder nur auf diesem Gerät.", true);
+              ({ error } = await SB.from(q.t).upsert(strip(q.t, { ...clean(q.t, row), user_id: USER.id }), { onConflict: "user_id,id" }));
+            }
+            if (error) throw error;
+          }
         } else { const { error } = await SB.from(q.t).delete().eq("id", q.id); if (error) throw error; }
         Q.shift(); saveLocal();
       } catch (e) { flushing = false; setSync("Sync-Fehler: " + (e.message || e)); return; }
@@ -54,7 +66,12 @@
       const pending = new Set(Q.filter(q => q.t === t).map(q => q.id));
       const local = D[t].filter(r => pending.has(r.id));
       const deleted = new Set(Q.filter(q => q.t === t && q.op === "del").map(q => q.id));
-      D[t] = data.filter(r => !pending.has(r.id) && !deleted.has(r.id)).map(r => { const o = clean(t, r); return o; }).concat(local);
+      const prev = new Map(D[t].map(r => [r.id, r]));
+      D[t] = data.filter(r => !pending.has(r.id) && !deleted.has(r.id)).map(r => {
+        const o = clean(t, r); const p = prev.get(r.id);
+        if (p && NEWCOLS[t]) NEWCOLS[t].forEach(k => { if (o[k] == null && p[k] != null) o[k] = p[k]; });
+        return o;
+      }).concat(local);
     }
     saveLocal(); render();
   }
@@ -96,6 +113,10 @@
     if (localStorage.getItem(LS.synced) !== u.id) {
       TABLES.forEach(t => D[t].forEach(r => enqueue(t, "up", r.id)));
       localStorage.setItem(LS.synced, u.id); saveLocal();
+    }
+    if (newColsMissing) {
+      const { error } = await SB.from("catches").select(NEWCOLS.catches.join(",")).limit(1);
+      if (!error) { newColsMissing = false; localStorage.removeItem(LS.newcols); D.catches.forEach(r => { if (NEWCOLS.catches.some(k => r[k] != null)) enqueue("catches", "up", r.id); }); saveLocal(); }
     }
     await flush(); await pull(); await flush();
   }
@@ -173,9 +194,21 @@
     set("f-result", v.result); set("f-species", v.species); set("f-cm", v.cm); set("f-time", v.time); set("f-lure", v.lure); set("f-size", v.size); set("f-color", v.color);
     set("f-weight", v.weight); set("f-rig", v.rig); set("f-setup", v.setup); set("f-retrieve", v.retrieve); set("f-tempo", v.tempo); set("f-bite", v.bite);
     set("f-wt", v.waterTemp ?? v.water_temp); set("f-release", v.release); set("f-notes", v.notes);
+    set("f-ltype", v.lure_type); set("f-lact", v.lure_action); set("f-ccls", v.color_class); set("f-clar", v.clarity);
+    prefillClasses();
   }
+  /* Köderart, Ködertyp und Farbklasse aus Köder/Montage/Farbe vorbelegen, solange du sie nicht selbst gewählt hast */
+  const CLS_FIELDS = [["f-ltype", "lure_type"], ["f-lact", "lure_action"], ["f-ccls", "color_class"]];
+  function prefillClasses() {
+    const g = F.classify({ lure: $("f-lure").value, rig: $("f-rig").value, color: $("f-color").value });
+    CLS_FIELDS.forEach(([id, k]) => { if (!$(id).dataset.user && g[k]) $(id).value = g[k]; });
+  }
+  ["f-lure", "f-rig", "f-color"].forEach(id => $(id).addEventListener("input", prefillClasses));
+  ["f-ltype", "f-lact", "f-ccls"].forEach(id => $(id).addEventListener("change", () => $(id).dataset.user = "1"));
+  function lastClarity() { const c = D.catches.filter(x => x.clarity && x.date === F.todayISO()).sort((a, b) => (b.time || "").localeCompare(a.time || ""))[0]; return c ? c.clarity : ""; }
   function resetForm() {
     ["c-text", "f-species", "f-cm", "f-lure", "f-size", "f-color", "f-weight", "f-rig", "f-retrieve", "f-bite", "f-notes"].forEach(i => $(i).value = "");
+    ["f-ltype", "f-lact", "f-ccls"].forEach(id => { $(id).value = ""; delete $(id).dataset.user; }); $("f-clar").value = lastClarity();
     $("f-tempo").value = ""; $("f-setup").value = lastSetup(); $("f-result").value = "Gelandet"; $("f-release").value = "Zurückgesetzt"; $("f-time").value = F.nowHM();
     editId = null; $("catchTitle").textContent = "Fang oder Biss melden"; $("btnDelete").classList.add("hidden"); $("btnCancelEdit").classList.add("hidden");
   }
@@ -214,7 +247,8 @@
       result, species: species || null, cm: result === "Gelandet" ? num("f-cm") : null, lure: $("f-lure").value.trim(), size: num("f-size"), color: $("f-color").value.trim(), weight: num("f-weight"),
       rig: $("f-rig").value.trim(), setup: $("f-setup").value, retrieve: $("f-retrieve").value.trim(), tempo: $("f-tempo").value, bite: $("f-bite").value.trim(), water_temp: num("f-wt"),
       release: result === "Gelandet" ? $("f-release").value : "", notes: $("f-notes").value.trim(), raw: $("c-text").value.trim() || (old ? old.raw : ""),
-      sunset: F.m2hm(st.su), light: F.lightPhase(time, st), moon: mo.name, moon_ill: mo.ill, capture: old ? old.capture : "Live"
+      sunset: F.m2hm(st.su), light: F.lightPhase(time, st), moon: mo.name, moon_ill: mo.ill, capture: old ? old.capture : "Live",
+      lure_type: $("f-ltype").value || null, lure_action: $("f-lact").value || null, color_class: $("f-ccls").value || null, clarity: $("f-clar").value || null
     };
     const changedWx = !old || old.spot !== row.spot || old.time !== row.time;
     if (changedWx) row.weather_status = "offen";
@@ -234,7 +268,7 @@
   });
   function editCatch(id) {
     const c = D.catches.find(x => x.id === id); if (!c) return;
-    resetForm(); editId = id; fillForm(c); $("f-spot").value = c.spot; $("f-time").value = c.time || ""; $("f-release").value = c.release || "";
+    resetForm(); editId = id; CLS_FIELDS.forEach(([fid, k]) => { if (c[k]) $(fid).dataset.user = "1"; }); fillForm(c); $("f-clar").value = c.clarity || ""; $("f-spot").value = c.spot; $("f-time").value = c.time || ""; $("f-release").value = c.release || "";
     $("c-text").value = c.raw || ""; $("catchTitle").textContent = id + " bearbeiten"; $("btnDelete").classList.remove("hidden"); $("btnCancelEdit").classList.remove("hidden");
     showTab("melden"); $("catchCard").scrollIntoView({ behavior: "smooth" });
   }

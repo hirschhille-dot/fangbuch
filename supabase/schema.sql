@@ -78,6 +78,10 @@ create table if not exists public.catches (
   capture        text,
   notes          text,
   raw            text,
+  lure_type      text,
+  lure_action    text,
+  color_class    text,
+  clarity        text,
   updated_at     timestamptz not null default now(),
   primary key (user_id, id)
 );
@@ -101,3 +105,9 @@ begin new.updated_at = now(); return new; end $$;
 drop trigger if exists t_spots on public.spots;       create trigger t_spots    before update on public.spots    for each row execute function public.touch_updated_at();
 drop trigger if exists t_sessions on public.sessions; create trigger t_sessions before update on public.sessions for each row execute function public.touch_updated_at();
 drop trigger if exists t_catches on public.catches;   create trigger t_catches  before update on public.catches  for each row execute function public.touch_updated_at();
+
+-- Spalten für die Vorhersage (auch für schon bestehende Tabellen)
+alter table public.catches add column if not exists lure_type   text;
+alter table public.catches add column if not exists lure_action text;
+alter table public.catches add column if not exists color_class text;
+alter table public.catches add column if not exists clarity     text;

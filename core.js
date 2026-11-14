@@ -182,6 +182,43 @@
     return `${String(Math.round(w.air_temp * 10) / 10).replace(".", ",")} °C · ${w.pressure ?? "–"} hPa ${w.pressure_trend ? "(" + w.pressure_trend.split(" (")[0] + ")" : ""} · ${compass(w.wind_dir)} ${Math.round(w.wind_speed ?? 0)} km/h · ${wmo(w.weather_code)}`;
   }
 
+  /* ---- Köder-Klassen aus Freitext (für Vorbelegung und ältere Einträge) ---- */
+  const LURE_TYPES = ["Softbait", "Hardbait", "Metallköder"];
+  const LURE_ACTIONS = ["Action", "No Action", "Druckwelle"];
+  const COLOR_CLASSES = ["natürlich", "dunkel", "auffällig"];
+  const CLARITY = ["klar", "leicht trüb", "trüb"];
+  function classify(o) {
+    const lure = String(o.lure || "").toLowerCase(), rig = String(o.rig || "").toLowerCase(), col = String(o.color || "").toLowerCase();
+    const all = lure + " " + rig;
+    let type = null, action = null, cc = null;
+    if (/spinnerbait|chatter|wobbler|crank|twitch|jerk|minnow|ikiru|hardbait|popper|glide|swimbait hart|stickbait|topwater/.test(all)) type = "Hardbait";
+    else if (/spinner|blinker|spoon|zocker|cicada|pilker|tailspinner|löffel|metall/.test(all)) type = "Metallköder";
+    else if (/shiner|fin|kick|shad|gummi|krebs|stickleback|twister|trailer|creature|pintail|wurm|worm|ned|drop-shot|texas|carolina|jigkopf|free-rig|soft/.test(all)) type = "Softbait";
+    if (/chatter|spinnerbait|spinner|colorado|paddle|rassel|rattle|popper|crank|tailspinner/.test(all)) action = "Druckwelle";
+    else if (/no.?action|pintail|d-fin|ned|zocker|cicada|jerk|glide|stick(?!leback)|wurm|worm|creature|krebs/.test(all)) action = "No Action";
+    else if (type) action = "Action";
+    if (/schwarz|motor ?oil|dunkel|lila|violett|black|braun-blau|dunkelblau/.test(col)) cc = "dunkel";
+    else if (/chartreuse|firetiger|pink|gelb|orange|uv|neon|rot|glitter|gold/.test(col)) cc = "auffällig";
+    else if (/weiß|weiss/.test(col) && !/braun|grün|silber/.test(col)) cc = "auffällig";
+    else if (/natur|roach|braun|grün|silber|shiner|barsch|rotauge|grundel|ayu|ghost|clear|perch|weiß|weiss|oliv/.test(col)) cc = "natürlich";
+    return { lure_type: type, lure_action: action, color_class: cc };
+  }
+  /* Klassen eines Eintrags: gespeicherte Auswahl vor Ableitung aus dem Text */
+  function classesOf(c) {
+    const g = classify(c);
+    const tempo = parseInt(c.tempo) || null, ret = String(c.retrieve || "").toLowerCase();
+    let fuehr = null;
+    if (/twitch|jerk|jigg|zupf|spring|hart|aggressiv|reißen/.test(ret)) fuehr = 2;
+    else if ((tempo && tempo <= 2) || /faulenz|schleif|langsam|stopp|dead|absink/.test(ret)) fuehr = 0;
+    else if ((tempo && tempo >= 4) || /schnell|burn|zügig|einkurbel/.test(ret)) fuehr = 1;
+    const cm = c.size ? c.size * 2.54 : null;
+    const ix = (arr, v) => { const i = arr.indexOf(v); return i < 0 ? null : i; };
+    return {
+      art: ix(LURE_TYPES, c.lure_type || g.lure_type), akt: ix(LURE_ACTIONS, c.lure_action || g.lure_action), farbe: ix(COLOR_CLASSES, c.color_class || g.color_class),
+      size: cm == null ? null : cm <= 7 ? 0 : cm <= 12 ? 1 : 2, fuehr
+    };
+  }
+
   /* ---- Statistik ---- */
   function groupStats(catches, keyFn) {
     const g = {};
@@ -193,5 +230,5 @@
   }
   function durH(s) { const a = hm2m(s.start_time), b = hm2m(s.end_time); if (a == null || b == null) return null; let m = b - a; if (m < 0) m += 1440; return m / 60; }
 
-  G.FB = { TACKLE, pad, todayISO, nowHM, hm2m, m2hm, sunTimes, lightPhase, moon, dist, nearestSpot, parse, fetchWeather, wxSummary, compass, wmo, groupStats, durH, addDays };
+  G.FB = { TACKLE, pad, todayISO, nowHM, hm2m, m2hm, sunTimes, lightPhase, moon, dist, nearestSpot, parse, fetchWeather, wxSummary, compass, wmo, groupStats, durH, addDays, classify, classesOf, LURE_TYPES, LURE_ACTIONS, COLOR_CLASSES, CLARITY };
 })(typeof window !== "undefined" ? window : globalThis);
